@@ -19,7 +19,12 @@ import gencell.cronLaboratorio.entities.VWCronSelfdecodeListos;
 import gencell.cronLaboratorio.selfdecode.ProfilePersonaSelfdecode;
 import gencell.cronLaboratorio.selfdecode.SelfdecodeServiceProcess;
 import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -67,15 +72,15 @@ public class MBControllerLaboratorio implements Serializable {
             List<VWCronSelfdecodeCargaArchivos> listArchivosCargaSelfdecode;
             // CREAR UNA LISTA 
             // listArchivosCargaSelfdecode = sessionBeanBaseFachada.BuscarTodos(VWCronSelfdecodeCargaArchivos.class);
-            
+
             List<String> archivos = new ArrayList<>();
             archivos.add("V350097149_L1_1.fq.gz");
             archivos.add("V350097149_L1_2.fq.gz");
-            
+
             if (archivos != null && !archivos.isEmpty()) {
                 System.out.println("**************** ENCUENTRA ARCHIVOS PARA CARGAR: " + archivos.size());
                 this.cargarArchivosFasq(archivos);
-            }else{
+            } else {
                 System.out.println("No hay archivos para copiar");
             }
             //this.sendPost(); // Ejecutara el envio a Selfdecode 
@@ -85,7 +90,9 @@ public class MBControllerLaboratorio implements Serializable {
 //                monitorCron.setFechaFinal(new Date());
 //                sessionBeanBaseFachada.Editar(monitorCron);
 //            }
-
+            System.out.println("Renombrando y Ordenando ....... ");
+            this.renombrarOrdenar();
+            
         } catch (Exception e) {
             System.out.println("Excepcion ejecutarTareaCargaArchivosSelfdecode" + e.getMessage());
             e.printStackTrace();
@@ -102,8 +109,8 @@ public class MBControllerLaboratorio implements Serializable {
                 Boolean flag = this.obtenerByteFile(archivos.get(i));
                 if (flag != null && flag) {
                     this.comprobarSize(archivos.get(i));
-                }else{
-                    System.out.println(archivos.get(i)+ " NO SE PUEDE COPIAR");
+                } else {
+                    System.out.println(archivos.get(i) + " NO SE PUEDE COPIAR");
                 }
             } catch (Exception ex) {
                 System.out.println("**************** ERROR AL CARGAR EL ARCHIVO : " + archivos.get(i));
@@ -173,11 +180,11 @@ public class MBControllerLaboratorio implements Serializable {
                 if (entry.getFilename().equals(archivoCar)) {
                     if (tmp.length() == attr.getSize()) {
                         //sessionBeanBaseFachada.actualizarEstadoPeticionBioLab(archivoCar.getId(), "CARGADO-SERVER", "50");
-                        System.out.println("Archivo "+ archivoCar + " Copiado");
+                        System.out.println("Archivo " + archivoCar + " Copiado");
                         //this.sendPost(archivoCar);
                         break;
                     } else {
-                       // sessionBeanBaseFachada.actualizarEstadoPeticionBioLab(archivoCar.getId(), "INICIAL", "10");
+                        // sessionBeanBaseFachada.actualizarEstadoPeticionBioLab(archivoCar.getId(), "INICIAL", "10");
                         tmp.delete();
                         break;
                     }
@@ -198,8 +205,6 @@ public class MBControllerLaboratorio implements Serializable {
             }
         }
     }
-
-   
 
     public void eliminarArchivosSelfdecode() {
         // System.out.println("ELIMINAR ARCHIVOS");
@@ -273,6 +278,38 @@ public class MBControllerLaboratorio implements Serializable {
                 System.out.println("ERROR OBTENIENDO LA INFORMACIÓN PARA ELIMINAR, tienen que ser 2 archivos por petición");
             }
 
+        }
+    }
+
+    public void renombrarOrdenar() throws IOException {
+        String peticion = "222222";
+        File copiar = new File("C:" + File.separator + "Users" + File.separator + "devjava" + File.separator + "Desktop" + File.separator + "laboratorio");
+        File pegar = new File("C:" + File.separator + "Users" + File.separator + "devjava" + File.separator + "Desktop" + File.separator + "laboratorio" + File.separator + peticion);
+        
+        String rutaInicial = copiar.getAbsolutePath();
+        String rutaFinal = pegar.getAbsolutePath();
+        String[] directorio = copiar.list();
+        String primero = "";
+        String segundo = "";
+
+        Path in = Paths.get(rutaInicial);
+        Path out = Paths.get(pegar.getAbsolutePath());
+        
+        Files.createDirectory(out); // Crea la carpeta donde se va a pegar la informacion
+
+        for (int i = 0; i < directorio.length; i++) {
+            
+            // ** Se agrega informacion a las variables, se reescriben
+            primero = directorio[i].substring(0,13);
+            segundo = directorio[i].substring(13, directorio[i].length());
+            System.out.println("RENOMBRADO: " + primero +"_"+ peticion + segundo);
+            in = Paths.get(rutaInicial + File.separator + directorio[i]);
+            out = Paths.get(rutaFinal + File.separator + primero +"_"+ peticion + segundo);
+            System.out.println("Ruta Copiar: " + in);
+            System.out.println("Ruta Pegar: " + out);
+
+            Files.copy(in, out, StandardCopyOption.REPLACE_EXISTING);
+            System.out.println("COPIADO");
         }
     }
 
