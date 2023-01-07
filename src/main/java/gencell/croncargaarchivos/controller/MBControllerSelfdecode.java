@@ -323,7 +323,7 @@ public class MBControllerSelfdecode implements Serializable {
 
                             Files.copy(in, out, StandardCopyOption.REPLACE_EXISTING);
                             System.out.println("COPIADO");
-                            //Files.delete(in);
+                            Files.delete(in);
                             System.out.println("ARCHIVO BORRADO");
                             sessionBeanBaseFachada.actualizarLabFinProcesamiento(idArchivo);
                             listaLabFinProcesamiento = sessionBeanBaseFachada.consultarArchivosFinProcesamiento();
@@ -345,7 +345,7 @@ public class MBControllerSelfdecode implements Serializable {
 
                             Files.copy(in, out, StandardCopyOption.REPLACE_EXISTING);
                             System.out.println("COPIADO");
-                            //Files.delete(in);
+                            Files.delete(in);
                             System.out.println("ARCHIVO BORRADO");
                             sessionBeanBaseFachada.actualizarLabFinProcesamiento(idArchivo);
                             listaLabFinProcesamiento = sessionBeanBaseFachada.consultarArchivosFinProcesamiento();
