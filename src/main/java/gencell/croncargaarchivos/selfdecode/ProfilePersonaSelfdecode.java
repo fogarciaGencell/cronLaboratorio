@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package gencell.cronLaboratorio.selfdecode;
+package gencell.croncargaarchivos.selfdecode;
 
 import java.io.Serializable;
 import javax.persistence.Basic;

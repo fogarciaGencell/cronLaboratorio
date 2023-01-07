@@ -3,12 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package gencell.cronLaboratorio.ejb;
+package gencell.croncargaarchivos.ejb;
 
-import gencell.cronLaboratorio.entities.VWCronArchivosCarga;
-import gencell.cronLaboratorio.entities.VWCronSelfdecodeBorrar;
-import gencell.cronLaboratorio.entities.VWCronSelfdecodeListos;
-import gencell.cronLaboratorio.selfdecode.ProfilePersonaSelfdecode;
+import gencell.croncargaarchivos.entities.LabFinProcesamiento;
+import gencell.croncargaarchivos.entities.VWCronArchivosCarga;
+import gencell.croncargaarchivos.entities.VWCronSelfdecodeBorrar;
+import gencell.croncargaarchivos.entities.VWCronSelfdecodeListos;
+import gencell.croncargaarchivos.selfdecode.ProfilePersonaSelfdecode;
 import java.util.List;
 import javax.ejb.Local;
 
@@ -65,5 +66,13 @@ public interface SessionBeanBaseFachadaLocal {
      public List<VWCronSelfdecodeBorrar> obtenerArchivosSelfBorrar(Integer idPeticion);
     
     public void actualizarEstadoSelfTablaLog(String genomeFile, String estado, String fechaSelf);
+    
+   
+    // Cron Laboratorio ****************
+    
+   public List<LabFinProcesamiento> consultarArchivosFinProcesamiento();
+    
+   public void actualizarLabFinProcesamiento(Integer id); 
+    // Fin Cron Laboratorio *************
     
 }

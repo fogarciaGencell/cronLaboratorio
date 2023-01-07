@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package gencell.cronLaboratorio.selfdecode;
+package gencell.croncargaarchivos.selfdecode;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -16,8 +16,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import gencell.cronLaboratorio.ejb.SessionBeanBaseFachadaLocal;
-import gencell.cronLaboratorio.entities.LogCargueArchivosSelf;
+import gencell.croncargaarchivos.ejb.SessionBeanBaseFachadaLocal;
+import gencell.croncargaarchivos.entities.LogCargueArchivosSelf;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;

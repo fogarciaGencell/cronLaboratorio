@@ -3,21 +3,23 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package gencell.cronLaboratorio.controller;
+package gencell.croncargaarchivos.controller;
 
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.SftpATTRS;
-import gencell.cronLaboratorio.ejb.SessionBeanBaseFachadaLocal;
-import gencell.cronLaboratorio.entities.Cron;
-import gencell.cronLaboratorio.entities.VWCronSelfFileId;
-import gencell.cronLaboratorio.entities.VWCronSelfdecodeBorrar;
-import gencell.cronLaboratorio.entities.VWCronSelfdecodeCargaArchivos;
-import gencell.cronLaboratorio.entities.VWCronSelfdecodeListos;
-import gencell.cronLaboratorio.selfdecode.ProfilePersonaSelfdecode;
-import gencell.cronLaboratorio.selfdecode.SelfdecodeServiceProcess;
+import gencell.croncargaarchivos.ejb.SessionBeanBaseFachada;
+import gencell.croncargaarchivos.ejb.SessionBeanBaseFachadaLocal;
+import gencell.croncargaarchivos.entities.Cron;
+import gencell.croncargaarchivos.entities.LabFinProcesamiento;
+import gencell.croncargaarchivos.entities.VWCronSelfFileId;
+import gencell.croncargaarchivos.entities.VWCronSelfdecodeBorrar;
+import gencell.croncargaarchivos.entities.VWCronSelfdecodeCargaArchivos;
+import gencell.croncargaarchivos.entities.VWCronSelfdecodeListos;
+import gencell.croncargaarchivos.selfdecode.ProfilePersonaSelfdecode;
+import gencell.croncargaarchivos.selfdecode.SelfdecodeServiceProcess;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
@@ -34,6 +36,10 @@ import javax.inject.Named;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 
+/**
+ *
+ * @author Fredy G
+ */
 @Named(value = "MBControllerLaboratorio")
 @SessionScoped
 public class MBControllerLaboratorio implements Serializable {
@@ -53,13 +59,15 @@ public class MBControllerLaboratorio implements Serializable {
      * Creates a new instance of MBController
      */
     public MBControllerLaboratorio() {
-//        if (sessionBeanBaseFachada == null) {
-//            System.out.println("****************  fachada null Cron CARGA ARCHIVOS: ");
-//            sessionBeanBaseFachada = this.lookupSessionBeanBaseFachadaLocal();
-//            if (sessionBeanBaseFachada != null) {
-//                System.out.println("****************  fachada obtenida Cron CARGA ARCHIVOS: ");
-//            }
-//        }
+        sessionBeanBaseFachada = new SessionBeanBaseFachada();
+        if (sessionBeanBaseFachada == null) {
+            System.out.println("****************  fachada null Cron CARGA ARCHIVOS: ");
+            sessionBeanBaseFachada = this.lookupSessionBeanBaseFachadaLocal();
+            System.out.println("Fachada Obtenida");
+            if (sessionBeanBaseFachada != null) {
+                System.out.println("****************  fachada obtenida Cron CARGA ARCHIVOS: ");
+            }
+        }
     }
 
     public void ejecutarTareaCargaArchivosLaboratorio() {
@@ -92,9 +100,9 @@ public class MBControllerLaboratorio implements Serializable {
 //            }
             System.out.println("Renombrando y Ordenando ....... ");
             this.renombrarOrdenar();
-            
+
         } catch (Exception e) {
-            System.out.println("Excepcion ejecutarTareaCargaArchivosSelfdecode" + e.getMessage());
+            System.out.println("Excepcion ejecutarTareaCargaArchivosLaboratorio" + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -282,46 +290,75 @@ public class MBControllerLaboratorio implements Serializable {
     }
 
     public void renombrarOrdenar() throws IOException {
-        String peticion = "222222";
+
+        List<LabFinProcesamiento> listaLabFinProcesamiento;
+        List<VWCronSelfFileId> listaFileId;
+        listaFileId = sessionBeanBaseFachada.BuscarTodos(VWCronSelfFileId.class);
+        sessionBeanBaseFachada.actualizarLabFinProcesamiento(1);
+        listaLabFinProcesamiento = sessionBeanBaseFachada.consultarArchivosFinProcesamiento();
         File copiar = new File("C:" + File.separator + "Users" + File.separator + "devjava" + File.separator + "Desktop" + File.separator + "laboratorio");
-        File pegar = new File("C:" + File.separator + "Users" + File.separator + "devjava" + File.separator + "Desktop" + File.separator + "laboratorio" + File.separator + peticion);
-        
+        File pegar;
+
         String rutaInicial = copiar.getAbsolutePath();
-        String rutaFinal = pegar.getAbsolutePath();
+        String rutaFinal;
         String[] directorio = copiar.list();
         String primero = "";
         String segundo = "";
+        String nombreArchivoLab = "";
+        Integer peticion = 0;
+        Integer idArchivo = 0;
+        Integer contador = 0;
 
         Path in = Paths.get(rutaInicial);
-        Path out = Paths.get(pegar.getAbsolutePath());
-        
-        Files.createDirectory(out); // Crea la carpeta donde se va a pegar la informacion
+        Path out;
 
+        //Files.createDirectory(out); // Crea la carpeta donde se va a pegar la informacion
         for (int i = 0; i < directorio.length; i++) {
-            
-            // ** Se agrega informacion a las variables, se reescriben
-            primero = directorio[i].substring(0,13);
-            segundo = directorio[i].substring(13, directorio[i].length());
-            System.out.println("RENOMBRADO: " + primero +"_"+ peticion + segundo);
-            in = Paths.get(rutaInicial + File.separator + directorio[i]);
-            out = Paths.get(rutaFinal + File.separator + primero +"_"+ peticion + segundo);
-            System.out.println("Ruta Copiar: " + in);
-            System.out.println("Ruta Pegar: " + out);
 
-            Files.copy(in, out, StandardCopyOption.REPLACE_EXISTING);
-            System.out.println("COPIADO");
+            for (LabFinProcesamiento lista : listaLabFinProcesamiento) {
+
+                idArchivo = lista.getId();
+                peticion = lista.getIdPeticion();
+                nombreArchivoLab = lista.getNombreArchivoCompleto();
+                pegar = new File("C:" + File.separator + "Users" + File.separator + "devjava" + File.separator + "Desktop" + File.separator + "laboratorio" + File.separator + peticion);
+                rutaFinal = pegar.getAbsolutePath();
+                out = Paths.get(pegar.getAbsolutePath());
+                for (String archivo : directorio) {
+
+                    if (lista.equals(archivo)) {
+                        System.out.println("ES IGUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAL ");
+
+                        // Pendiente revisar el contador
+                        //if(directorio[contador].equals(nombreArchivoLab)){
+                        Files.createDirectory(out); // Crea la carpeta donde se va a pegar la informacion    
+                        // ** Se agrega informacion a las variables, se reescriben
+                        primero = archivo.substring(0, 13);
+                        segundo = archivo.substring(13, directorio[i].length());
+                        System.out.println("RENOMBRADO: " + primero + "_" + peticion + segundo);
+                        in = Paths.get(rutaInicial + File.separator + archivo);
+                        out = Paths.get(rutaFinal + File.separator + primero + "_" + peticion + segundo);
+                        System.out.println("Ruta Copiar: " + in);
+                        System.out.println("Ruta Pegar: " + out);
+
+                        Files.copy(in, out, StandardCopyOption.REPLACE_EXISTING);
+                        System.out.println("COPIADO");
+                        sessionBeanBaseFachada.actualizarLabFinProcesamiento(idArchivo);
+                    } else {
+                        System.out.println("No Se Encontro Coincidencia");
+                    }
+                }
+            }
         }
     }
 
     private SessionBeanBaseFachadaLocal lookupSessionBeanBaseFachadaLocal() {
         try {
             Context c = new InitialContext();
-            return (SessionBeanBaseFachadaLocal) c.lookup("java:global/CronCargaArchivos/SessionBeanBaseFachada!gencell.croncargaarchivos.ejb.SessionBeanBaseFachadaLocal");
+            return (SessionBeanBaseFachadaLocal) c.lookup("java:global/CronLaboratorio/SessionBeanBaseFachada!gencell.cronLaboratorio.ejb.SessionBeanBaseFachadaLocal");
         } catch (Exception e) {
             System.out.println("ERROR AL OBTENER EL BEAN DE CRON CARGA ARCHIVOS: ");
             e.printStackTrace();
             return null;
         }
     }
-
 }

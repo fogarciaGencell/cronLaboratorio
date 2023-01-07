@@ -3,12 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package gencell.cronLaboratorio.ejb;
+package gencell.croncargaarchivos.ejb;
 
-import gencell.cronLaboratorio.entities.VWCronArchivosCarga;
-import gencell.cronLaboratorio.entities.VWCronSelfdecodeBorrar;
-import gencell.cronLaboratorio.entities.VWCronSelfdecodeListos;
-import gencell.cronLaboratorio.selfdecode.ProfilePersonaSelfdecode;
+import gencell.croncargaarchivos.entities.LabFinProcesamiento;
+import gencell.croncargaarchivos.entities.VWCronArchivosCarga;
+import gencell.croncargaarchivos.entities.VWCronSelfdecodeBorrar;
+import gencell.croncargaarchivos.entities.VWCronSelfdecodeListos;
+import gencell.croncargaarchivos.selfdecode.ProfilePersonaSelfdecode;
 import java.util.ArrayList;
 import java.util.List;
 import javax.ejb.Stateless;
@@ -321,4 +322,35 @@ public class SessionBeanBaseFachada implements SessionBeanBaseFachadaLocal {
         }
     }
 
+    @Override
+    public List<LabFinProcesamiento> consultarArchivosFinProcesamiento() {
+        System.out.println("Realizan Consulta ¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨");
+        em.getEntityManagerFactory().getCache().evictAll();
+        String query = "select * from LabFinProcesamiento where procesado='N';";
+        Query q = em.createNativeQuery(query, LabFinProcesamiento.class);
+        if (q.getResultList() == null || q.getResultList().isEmpty()) {
+            System.out.println("CERO RESULTADOS");
+            return null;
+        } else {
+            System.out.println("HAY RESULTADOS");
+            return (List<LabFinProcesamiento>) q.getResultList();
+        }
+
+
+
+    }
+
+    @Override
+    public void actualizarLabFinProcesamiento(Integer id) {
+         try {
+            em.getEntityManagerFactory().getCache().evictAll();
+            String query = "update LabFinProcesamiento set procesado ='S' where id = '"+id+"';";
+            Query q = em.createNativeQuery(query);
+            Integer retorno = q.executeUpdate();
+            System.out.print("Resultado actualizarLabFinProcesamiento " + retorno);
+        } catch (Exception e) {
+            System.out.print("Error en: actualizarLabFinProcesamiento " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 }

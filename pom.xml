@@ -3,11 +3,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.gencell</groupId>
-    <artifactId>CronLaboratorio</artifactId>
+    <artifactId>CronCargaArchivos</artifactId>
     <version>1.0</version>
     <packaging>war</packaging>
 
-    <name>CronLaboratorio</name>
+    <name>CronCargaArchivos</name>
 
     <properties>
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>

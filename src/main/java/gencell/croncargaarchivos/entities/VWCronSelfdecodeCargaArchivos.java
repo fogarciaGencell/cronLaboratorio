@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package gencell.cronLaboratorio.entities;
+package gencell.croncargaarchivos.entities;
 
 import java.io.Serializable;
 import javax.persistence.Basic;
@@ -22,21 +22,19 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author USUARIO
  */
 @Entity
-@Table(name = "VWCronSelfdecodeListos")
+@Table(name = "VWCronSelfdecodeCargaArchivos")
 @XmlRootElement
 @NamedQueries({
-    @NamedQuery(name = "VWCronSelfdecodeListos.findAll", query = "SELECT v FROM VWCronSelfdecodeListos v")
-    , @NamedQuery(name = "VWCronSelfdecodeListos.findById", query = "SELECT v FROM VWCronSelfdecodeListos v WHERE v.id = :id")
-    , @NamedQuery(name = "VWCronSelfdecodeListos.findByIdPeticion", query = "SELECT v FROM VWCronSelfdecodeListos v WHERE v.idPeticion = :idPeticion")
-    , @NamedQuery(name = "VWCronSelfdecodeListos.findByIdentificador", query = "SELECT v FROM VWCronSelfdecodeListos v WHERE v.identificador = :identificador")
-    , @NamedQuery(name = "VWCronSelfdecodeListos.findByUrl", query = "SELECT v FROM VWCronSelfdecodeListos v WHERE v.url = :url")
-    , @NamedQuery(name = "VWCronSelfdecodeListos.findByNombreArchivo", query = "SELECT v FROM VWCronSelfdecodeListos v WHERE v.nombreArchivo = :nombreArchivo")
-    , @NamedQuery(name = "VWCronSelfdecodeListos.findByUsuarioFTP", query = "SELECT v FROM VWCronSelfdecodeListos v WHERE v.usuarioFTP = :usuarioFTP")
-    , @NamedQuery(name = "VWCronSelfdecodeListos.findByPasswordFTP", query = "SELECT v FROM VWCronSelfdecodeListos v WHERE v.passwordFTP = :passwordFTP")
-    , @NamedQuery(name = "VWCronSelfdecodeListos.findByUsuarioRedLocal", query = "SELECT v FROM VWCronSelfdecodeListos v WHERE v.usuarioRedLocal = :usuarioRedLocal")
-    , @NamedQuery(name = "VWCronSelfdecodeListos.findByPasswordRedLocal", query = "SELECT v FROM VWCronSelfdecodeListos v WHERE v.passwordRedLocal = :passwordRedLocal")
-    , @NamedQuery(name = "VWCronSelfdecodeListos.findByIp", query = "SELECT v FROM VWCronSelfdecodeListos v WHERE v.ip = :ip")})
-public class VWCronSelfdecodeListos implements Serializable {
+    @NamedQuery(name = "VWCronSelfdecodeCargaArchivos.findAll", query = "SELECT v FROM VWCronSelfdecodeCargaArchivos v")
+    , @NamedQuery(name = "VWCronSelfdecodeCargaArchivos.findById", query = "SELECT v FROM VWCronSelfdecodeCargaArchivos v WHERE v.id = :id")
+    , @NamedQuery(name = "VWCronSelfdecodeCargaArchivos.findByIdPeticion", query = "SELECT v FROM VWCronSelfdecodeCargaArchivos v WHERE v.idPeticion = :idPeticion")
+    , @NamedQuery(name = "VWCronSelfdecodeCargaArchivos.findByUrl", query = "SELECT v FROM VWCronSelfdecodeCargaArchivos v WHERE v.url = :url")
+    , @NamedQuery(name = "VWCronSelfdecodeCargaArchivos.findByNombreArchivo", query = "SELECT v FROM VWCronSelfdecodeCargaArchivos v WHERE v.nombreArchivo = :nombreArchivo")
+    , @NamedQuery(name = "VWCronSelfdecodeCargaArchivos.findByUsuarioFTP", query = "SELECT v FROM VWCronSelfdecodeCargaArchivos v WHERE v.usuarioFTP = :usuarioFTP")
+    , @NamedQuery(name = "VWCronSelfdecodeCargaArchivos.findByPasswordFTP", query = "SELECT v FROM VWCronSelfdecodeCargaArchivos v WHERE v.passwordFTP = :passwordFTP")
+    , @NamedQuery(name = "VWCronSelfdecodeCargaArchivos.findByUsuarioRedLocal", query = "SELECT v FROM VWCronSelfdecodeCargaArchivos v WHERE v.usuarioRedLocal = :usuarioRedLocal")
+    , @NamedQuery(name = "VWCronSelfdecodeCargaArchivos.findByPasswordRedLocal", query = "SELECT v FROM VWCronSelfdecodeCargaArchivos v WHERE v.passwordRedLocal = :passwordRedLocal")})
+public class VWCronSelfdecodeCargaArchivos implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Basic(optional = false)
@@ -48,9 +46,6 @@ public class VWCronSelfdecodeListos implements Serializable {
     @NotNull
     @Column(name = "idPeticion")
     private int idPeticion;
-    @Size(max = 45)
-    @Column(name = "identificador")
-    private String identificador;
     @Size(max = 46)
     @Column(name = "URL")
     private String url;
@@ -69,11 +64,10 @@ public class VWCronSelfdecodeListos implements Serializable {
     @Size(max = 100)
     @Column(name = "passwordRedLocal")
     private String passwordRedLocal;
-    @Size(max = 45)
     @Column(name = "ip")
     private String ip;
 
-    public VWCronSelfdecodeListos() {
+    public VWCronSelfdecodeCargaArchivos() {
     }
 
     public int getId() {
@@ -90,14 +84,6 @@ public class VWCronSelfdecodeListos implements Serializable {
 
     public void setIdPeticion(int idPeticion) {
         this.idPeticion = idPeticion;
-    }
-
-    public String getIdentificador() {
-        return identificador;
-    }
-
-    public void setIdentificador(String identificador) {
-        this.identificador = identificador;
     }
 
     public String getUrl() {

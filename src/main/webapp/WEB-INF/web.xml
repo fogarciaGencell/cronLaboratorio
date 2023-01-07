@@ -6,9 +6,8 @@
     </context-param>
     <servlet>
         <servlet-name>QuartzServlet</servlet-name>
-        <servlet-class>gencell.cronLaboratorio.QuartzServlet</servlet-class>
+        <servlet-class>gencell.croncargaarchivos.QuartzServlet</servlet-class>
     </servlet>
-    
     <servlet>
         <servlet-name>Faces Servlet</servlet-name>
         <servlet-class>javax.faces.webapp.FacesServlet</servlet-class>
@@ -17,10 +16,8 @@
     <servlet-mapping>
         <servlet-name>QuartzServlet</servlet-name>
         <url-pattern>/QuartzServlet</url-pattern>
-    </servlet-mapping><servlet-mapping>
-        <servlet-name>Faces Servlet</servlet-name>
-        <url-pattern>/faces/*</url-pattern>
-    </servlet-mapping><servlet-mapping>
+    </servlet-mapping>
+    <servlet-mapping>
         <servlet-name>Faces Servlet</servlet-name>
         <url-pattern>/faces/*</url-pattern>
     </servlet-mapping>
@@ -31,4 +28,5 @@
     </session-config>
     <welcome-file-list>
         <welcome-file>faces/index.xhtml</welcome-file>
-    </welcome-file-list></web-app>
+    </welcome-file-list>
+</web-app>

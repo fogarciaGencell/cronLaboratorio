@@ -1,4 +1,4 @@
-package gencell.cronLaboratorio.selfdecode;
+package gencell.croncargaarchivos.selfdecode;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
