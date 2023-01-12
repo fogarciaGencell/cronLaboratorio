@@ -35,7 +35,9 @@ import javax.xml.bind.annotation.XmlRootElement;
     , @NamedQuery(name = "LabFinProcesamiento.findByMontaje", query = "SELECT l FROM LabFinProcesamiento l WHERE l.montaje = :montaje")
     , @NamedQuery(name = "LabFinProcesamiento.findByRuta", query = "SELECT l FROM LabFinProcesamiento l WHERE l.ruta = :ruta")
     , @NamedQuery(name = "LabFinProcesamiento.findByNombreArchivoCompleto", query = "SELECT l FROM LabFinProcesamiento l WHERE l.nombreArchivoCompleto = :nombreArchivoCompleto")
-    , @NamedQuery(name = "LabFinProcesamiento.findByProcesado", query = "SELECT l FROM LabFinProcesamiento l WHERE l.procesado = :procesado")})
+    , @NamedQuery(name = "LabFinProcesamiento.findByProcesado", query = "SELECT l FROM LabFinProcesamiento l WHERE l.procesado = :procesado")
+    , @NamedQuery(name = "LabFinProcesamiento.findByPorcentaje", query = "SELECT l FROM LabFinProcesamiento l WHERE l.porcentaje = :porcentaje")
+    , @NamedQuery(name = "LabFinProcesamiento.findByEstado", query = "SELECT l FROM LabFinProcesamiento l WHERE l.estado = :estado")})
 public class LabFinProcesamiento implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -66,6 +68,11 @@ public class LabFinProcesamiento implements Serializable {
     @Size(max = 1)
     @Column(name = "procesado")
     private String procesado;
+    @Column(name = "porcentaje")
+    private Integer porcentaje;
+    @Size(max = 100)
+    @Column(name = "estado")
+    private String estado;
 
     public LabFinProcesamiento() {
     }
@@ -144,6 +151,22 @@ public class LabFinProcesamiento implements Serializable {
 
     public void setProcesado(String procesado) {
         this.procesado = procesado;
+    }
+
+    public Integer getPorcentaje() {
+        return porcentaje;
+    }
+
+    public void setPorcentaje(Integer porcentaje) {
+        this.porcentaje = porcentaje;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
     }
 
     @Override

@@ -326,7 +326,7 @@ public class SessionBeanBaseFachada implements SessionBeanBaseFachadaLocal {
     public List<LabFinProcesamiento> consultarArchivosFinProcesamiento() {
         System.out.println("Realizan Consulta ¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨");
         em.getEntityManagerFactory().getCache().evictAll();
-        String query = "select * from LabFinProcesamiento where procesado='N';";
+        String query = "select * from LabFinProcesamiento where procesado='N' limit 4;";
         Query q = em.createNativeQuery(query, LabFinProcesamiento.class);
         if (q.getResultList() == null || q.getResultList().isEmpty()) {
             System.out.println("CERO RESULTADOS");
@@ -344,7 +344,7 @@ public class SessionBeanBaseFachada implements SessionBeanBaseFachadaLocal {
     public void actualizarLabFinProcesamiento(Integer id) {
          try {
             em.getEntityManagerFactory().getCache().evictAll();
-            String query = "update LabFinProcesamiento set procesado ='S' where id = '"+id+"';";
+            String query = "update LabFinProcesamiento set procesado ='S', estado = 'FINALIZADO', porcentaje = 95  where id = '"+id+"';";
             Query q = em.createNativeQuery(query);
             Integer retorno = q.executeUpdate();
             System.out.print("Resultado actualizarLabFinProcesamiento " + retorno);
@@ -352,5 +352,48 @@ public class SessionBeanBaseFachada implements SessionBeanBaseFachadaLocal {
             System.out.print("Error en: actualizarLabFinProcesamiento " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public List<LabFinProcesamiento> consultarArchivosCopiar() {
+        em.getEntityManagerFactory().getCache().evictAll();
+        String query = "select * from LabFinProcesamiento where porcentaje = 0 limit 4;";
+        Query q = em.createNativeQuery(query, LabFinProcesamiento.class);
+        if (q.getResultList() == null || q.getResultList().isEmpty()) {
+            System.out.println("CERO RESULTADOS consultarArchivosCopiar");
+            return null;
+        } else {
+            System.out.println("HAY RESULTADOS consultarArchivosCopiar");
+            return (List<LabFinProcesamiento>) q.getResultList();
+        }
+
+    }
+
+    @Override
+    public void actualizarEstadoPorcentajeLabFinProcesamiento(Integer id, String estado, Integer porcentaje) {
+        
+        try {
+            em.getEntityManagerFactory().getCache().evictAll();
+            String query = "update LabFinProcesamiento set estado ='"+estado+"', porcentaje = '"+porcentaje+"' where id = '"+id+"';";
+            Query q = em.createNativeQuery(query);
+            Integer retorno = q.executeUpdate();
+            System.out.print("Resultado actualizarLabFinProcesamiento " + retorno);
+        } catch (Exception e) {
+            System.out.print("Error en: actualizarLabFinProcesamiento " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public List<LabFinProcesamiento> consultarBorrarSecuenciador() {
+        em.getEntityManagerFactory().getCache().evictAll();
+        String query = "select * from LabFinProcesamiento where porcentaje = 95 limit 4;";
+        Query q = em.createNativeQuery(query, LabFinProcesamiento.class);
+        if (q.getResultList() == null || q.getResultList().isEmpty()) {
+            return null;
+        } else {
+            return (List<LabFinProcesamiento>) q.getResultList();
+        }
+
     }
 }

@@ -38,6 +38,7 @@ import javax.enterprise.context.SessionScoped;
 import javax.inject.Named;
 import javax.naming.Context;
 import javax.naming.InitialContext;
+import org.eclipse.persistence.sdo.helper.extension.SDOUtil;
 
 @Named(value = "MBControllerSelfdecode")
 @SessionScoped
@@ -46,7 +47,7 @@ public class MBControllerSelfdecode implements Serializable {
     @EJB
     private SessionBeanBaseFachadaLocal sessionBeanBaseFachada;
     private Cron monitorCron;
-    public static final String PATH_ARCHIVOS_DEV = "public/files/dev/laboratorio_gp/ngs";
+    //public static final String PATH_ARCHIVOS_DEV = "public/files/dev/laboratorio_gp/ngs";
     //public static final String PATH_ARCHIVOS_SELFDECODE_DEV = "d:\\";
     //public static final String PATH_ARCHIVOS_SELFDECODE = "/var/www/html/files_selfdecode/";
     public static final String PATH_ARCHIVOS_LOCAL = "C:\\Users\\devjava\\Desktop\\laboratorio\\";
@@ -69,11 +70,16 @@ public class MBControllerSelfdecode implements Serializable {
 
     public void ejecutarTareaCargaArchivosSelfdecode() {
         try {
-            List<String> archivos = new ArrayList<>();
-            archivos.add("V350097149_L01_58_1.fq.gz");
-            archivos.add("V350097149_L01_58_2.fq.gz");
-            archivos.add("V350097149_L03_81_2.fq.gz");
-            archivos.add("V350097149_L03_83_1.fq.gz");
+            //List<String> archivos = new ArrayList<>();
+            List<LabFinProcesamiento> archivos = new ArrayList<>();
+            //archivos.add("V350097149_L01_58_1.fq.gz");
+            //archivos.add("V350097149_L01_58_2.fq.gz");
+            //archivos.add("V350097149_L03_81_2.fq.gz");
+            //archivos.add("V350097149_L03_83_1.fq.gz");
+            
+            
+            
+            archivos = sessionBeanBaseFachada.consultarArchivosCopiar();
 
             if (archivos != null && !archivos.isEmpty()) {
                 System.out.println("**************** ENCUENTRA ARCHIVOS PARA CARGAR: " + archivos.size());
@@ -84,16 +90,19 @@ public class MBControllerSelfdecode implements Serializable {
 
             System.out.println("Renombrando y Ordenando ....... ");
             this.renombrarOrdenar();
+            this.eliminarDelSecuenciador();
         } catch (Exception e) {
             System.out.println("Error al inicio");
         }
     }
 
-    private void cargarArchivosFasq(List<String> archivos) {
-//        for (int i = 0; i < listArchivosCargaSelfdecode.size(); i++) {
-//            sessionBeanBaseFachada.actualizarEstadoPeticionBioLab(listArchivosCargaSelfdecode.get(i).getId(), "CARGANDO-SERVER", "10");
-//        }
+    private void cargarArchivosFasq(List<LabFinProcesamiento> archivos) {
         for (int i = 0; i < archivos.size(); i++) {
+            sessionBeanBaseFachada.actualizarEstadoPorcentajeLabFinProcesamiento(archivos.get(i).getId(), "PREPARADO PARA COPIAR", 10);// Cambia el estado para que el proximo cron no seleccione los mismos que estan en proceso
+        }
+        
+        //Recorre la lista para empezar a copiar 
+            for (int i = 0; i < archivos.size(); i++) {
             //VWCronSelfdecodeCargaArchivos archivoCargaSelf = listArchivosCargaSelfdecode.get(i);
             try {
                 Boolean flag = this.obtenerByteFile(archivos.get(i));
@@ -105,17 +114,18 @@ public class MBControllerSelfdecode implements Serializable {
             } catch (Exception ex) {
                 System.out.println("**************** ERROR AL CARGAR EL ARCHIVO : " + archivos.get(i));
                 ex.printStackTrace();
-                //sessionBeanBaseFachada.actualizarEstadoYDescPeticionBioLab(archivoCarga.getId(), "ERROR", ex.getMessage(), "12");
+                sessionBeanBaseFachada.actualizarEstadoPorcentajeLabFinProcesamiento(archivos.get(i).getId(), "ERROR COPIANDO", 10);
             }
         }
 
     }
 
-    private Boolean obtenerByteFile(String archivoCar) throws Exception {
+    private Boolean obtenerByteFile(LabFinProcesamiento archivoCar) throws Exception {
 
         JSch jsch = new JSch();
         ChannelSftp sftp = null;
         Session session = null;
+        String archivo = archivoCar.getNombreArchivoCompleto();
         try {
             session = jsch.getSession(USUARIO, HOST, 22);
             session.setConfig("PreferredAuthentications", "password");
@@ -126,13 +136,17 @@ public class MBControllerSelfdecode implements Serializable {
             sftp = (ChannelSftp) channel;
             sftp.connect();
             sftp.cd("/home/linux/Descargas/fas");
-            sftp.get(archivoCar, PATH_ARCHIVOS_LOCAL + archivoCar);
+            sftp.get(archivo, PATH_ARCHIVOS_LOCAL + archivo);
+            //System.out.println("Creando Carpeta");
+            //sftp.put("/home/linux/Descargas/fas/Creada.folder");
+            
+            //System.out.println("CARPETA CREADA **********************");
             sftp.disconnect();
             return true;
         } catch (Exception e) {
             System.out.println("No se pudo realizar la conexión  para subir al server");
-            //e.printStackTrace();
-            //sessionBeanBaseFachada.actualizarEstadoYDescPeticionBioLab(archivoCar.getId(), "ERROR SUBIDA A SERVER", e.getMessage(), "15");
+            e.printStackTrace();
+            sessionBeanBaseFachada.actualizarEstadoPorcentajeLabFinProcesamiento(archivoCar.getId(), "ERROR SUBIDA A SERVER", 60);
             return false;
         } finally {
             if (sftp != null) {
@@ -144,14 +158,15 @@ public class MBControllerSelfdecode implements Serializable {
         }
     }
 
-    private void comprobarSize(String archivoCar) throws Exception {
+    private void comprobarSize(LabFinProcesamiento archivoCar) throws Exception {
         JSch jsch = new JSch();
         ChannelSftp sftp = null;
         Session session = null;
+        String archivo = archivoCar.getNombreArchivoCompleto();
         try {
-            File tmp = new File(PATH_ARCHIVOS_LOCAL + archivoCar);
+            File tmp = new File(PATH_ARCHIVOS_LOCAL + archivo);
             if (!tmp.exists()) {
-                //sessionBeanBaseFachada.actualizarEstadoYDescPeticionBioLab(archivoCar.getId(), "INICIAL", "EL ARCHIVO EN EL SERVIDOR NO EXISTE", "50");
+                sessionBeanBaseFachada.actualizarEstadoPorcentajeLabFinProcesamiento( archivoCar.getId(), "NO EXISTE EN EL SERVIDOR", 50);
                 return;
             }
 
@@ -167,15 +182,20 @@ public class MBControllerSelfdecode implements Serializable {
             for (int j = 0; j < flLst.size(); j++) {
                 ChannelSftp.LsEntry entry = flLst.get(j);
                 SftpATTRS attr = entry.getAttrs();
-                if (entry.getFilename().equals(archivoCar)) {
+                if (entry.getFilename().equals(archivo)) {
                     if (tmp.length() == attr.getSize()) {
-                        //sessionBeanBaseFachada.actualizarEstadoPeticionBioLab(archivoCar.getId(), "CARGADO-SERVER", "50");
-                        System.out.println("Archivo " + archivoCar + " Copiado");
+                        System.out.println("Archivo en el Seuenciador: " + entry);
+                        ChannelSftp channelSftp = (ChannelSftp) session.openChannel("sftp");
+                        System.out.println("CREANDO CARPETA");
+                        channelSftp.put("/home/linux/Descargas/fas", "creada");
+                        System.out.println("CARPETA CREADA");
+                        sessionBeanBaseFachada.actualizarEstadoPorcentajeLabFinProcesamiento(archivoCar.getId(), "CARGADO-SERVER", 90);
+                       // System.out.println("Archivo " + archivoCar + " Copiado");
                         //this.sendPost(archivoCar);
                         break;
                     } else {
-                        // sessionBeanBaseFachada.actualizarEstadoPeticionBioLab(archivoCar.getId(), "INICIAL", "10");
-                        tmp.delete();
+                        sessionBeanBaseFachada.actualizarEstadoPorcentajeLabFinProcesamiento(archivoCar.getId(), "ERROR-VALIDANDO", 65);
+                        //tmp.delete();
                         break;
                     }
                 }
@@ -184,7 +204,7 @@ public class MBControllerSelfdecode implements Serializable {
         } catch (Exception e) {
             System.out.println("No se pudo realizar la conexión para comprobar archivo");
             e.printStackTrace();
-            //sessionBeanBaseFachada.actualizarEstadoYDescPeticionBioLab(archivoCar.getId(), "ERROR COMPROBACION ARCHIVO", e.getMessage(), "15");
+            sessionBeanBaseFachada.actualizarEstadoPorcentajeLabFinProcesamiento(archivoCar.getId(), "ERROR COMPROBANDO ARCHIVO", 65);
             return;
         } finally {
             if (sftp != null) {
@@ -196,79 +216,35 @@ public class MBControllerSelfdecode implements Serializable {
         }
     }
 
-    public void eliminarArchivosSelfdecode() {
-        // System.out.println("ELIMINAR ARCHIVOS");
-        List<VWCronSelfFileId> listaFileId;
-        List<VWCronSelfdecodeBorrar> archivosBorrar; // Para obtener el nombre del archivo a eliminar 
-        SelfdecodeServiceProcess consultarEstado = new SelfdecodeServiceProcess();
-        String estado;
-        String file;
-        Integer idPeticion;
-
-        listaFileId = sessionBeanBaseFachada.BuscarTodos(VWCronSelfFileId.class); // Crea una lista con los objetos maximo 6
-
-        for (VWCronSelfFileId fileIdSelfdecode : listaFileId) {
-
-            idPeticion = fileIdSelfdecode.getIdPeticion();
-            file = fileIdSelfdecode.getIdGenomeFile();
-            estado = consultarEstado.obtenerEstadoFile(file);
-            archivosBorrar = sessionBeanBaseFachada.obtenerArchivosSelfBorrar(idPeticion); // trae 2 resultados
-            //System.out.println("idPEticion: " + idPeticion );
-            //System.out.println("Estado: " + estado);
-            if (archivosBorrar != null && archivosBorrar.size() == 2) {// valida si vienen los dos archivos para eliminar forward y reverse
-                if (estado != null && estado.equals("COMPLETED")) {
-                    // Actualiza la fecha y el estado obtenido de selfdecode en la tabla del log
-                    String fechaSelfOk = "";
-                    fechaSelfOk = new Date().toString();
-                    sessionBeanBaseFachada.actualizarEstadoSelfTablaLog(file, estado, fechaSelfOk);
-
-                    File fichero1 = new File(PATH_ARCHIVOS_LOCAL + archivosBorrar.get(0).getNombreArchivo());
-                    File fichero2 = new File(PATH_ARCHIVOS_LOCAL + archivosBorrar.get(1).getNombreArchivo());
-
-                    // Valida existencia de fichero 1
-                    if (!fichero1.exists()) {
-                        sessionBeanBaseFachada.actualizarEstadoYDescPeticionBioLabSelfdecodeArchivo(archivosBorrar.get(0).getId(), "FINALIZADO", "", "100");
-                        System.out.println("El fichero " + archivosBorrar.get(0).getNombreArchivo() + " ya no existe");
-                    }
-
-                    // valida existencia de fichero 2
-                    if (!fichero2.exists()) {
-                        sessionBeanBaseFachada.actualizarEstadoYDescPeticionBioLabSelfdecodeArchivo(archivosBorrar.get(1).getId(), "FINALIZADO", "", "100");
-                        System.out.println("El fichero " + archivosBorrar.get(1).getNombreArchivo() + " ya no existe");
-                        return;
-                    }
-
-                    // Elimina Fichero 1
-                    if (fichero1.delete()) {
-                        sessionBeanBaseFachada.actualizarEstadoYDescPeticionBioLabSelfdecodeArchivo(archivosBorrar.get(0).getId(), "FINALIZADO", "", "100");
-                        System.out.println("El fichero " + archivosBorrar.get(0).getNombreArchivo() + " ha sido borrados satisfactoriamente");
-                    } else {
-                        System.out.println("El fichero " + archivosBorrar.get(0).getNombreArchivo() + " no puede ser borrado");
-                        sessionBeanBaseFachada.actualizarEstadoYDescPeticionBioLabSelfdecodeArchivo(archivosBorrar.get(0).getId(), "", "ERROR BORRANDO ARCHIVO", "95");
-                    }
-
-                    // Elimina Fichero 2 
-                    if (fichero2.delete()) {
-                        sessionBeanBaseFachada.actualizarEstadoYDescPeticionBioLabSelfdecodeArchivo(archivosBorrar.get(1).getId(), "FINALIZADO", "", "100");
-                        System.out.println("El fichero " + archivosBorrar.get(1).getNombreArchivo() + " ha sido borrados satisfactoriamente");
-                    } else {
-                        System.out.println("El fichero " + archivosBorrar.get(1).getNombreArchivo() + " no puede ser borrado");
-                        sessionBeanBaseFachada.actualizarEstadoYDescPeticionBioLabSelfdecodeArchivo(archivosBorrar.get(1).getId(), "", "ERROR BORRANDO ARCHIVO", "95");
-                    }
-                }
-
-                if (estado != null && estado.equals("ERROR")) {
-                    // Actualiza la fecha y el estado obtenido de selfdecode en la tabla del log
-                    String fechaSelf = "";
-                    fechaSelf = new Date().toString();
-                    sessionBeanBaseFachada.actualizarEstadoSelfTablaLog(file, estado, fechaSelf);
-                    sessionBeanBaseFachada.actualizarEstadoYDescPeticionBioLabSelfdecode(idPeticion, "ERROR EN ANÁLISIS", "", "85");
-                }
-            } else {
-                System.out.println("ERROR OBTENIENDO LA INFORMACIÓN PARA ELIMINAR, tienen que ser 2 archivos por petición");
-            }
-
-        }
+    public void eliminarDelSecuenciador() {
+        System.out.println("SECUENCIADOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOR");
+       List<LabFinProcesamiento> lstSecuenciadorBorrar = new ArrayList<>();
+       lstSecuenciadorBorrar = sessionBeanBaseFachada.consultarBorrarSecuenciador();
+       String ruta; // pendiente definir la ruta desde el excel
+       String nombreArchivo = "";
+       File rutaBorrar;
+       Path pathArchivoBorrar ;
+       try{
+       for(LabFinProcesamiento lista: lstSecuenciadorBorrar){
+           nombreArchivo = lista.getNombreArchivoCompleto();
+           ruta = "/home/linux/Descargas/fas/" + nombreArchivo;
+           rutaBorrar = new File(ruta);
+           String archivoBorrar = rutaBorrar.getAbsolutePath();
+           System.out.println("RUTA sECUENCIADOR: " +  rutaBorrar);
+           if(rutaBorrar.exists()){
+               
+               System.out.println("Se encontro el archivo");
+               pathArchivoBorrar = Paths.get(archivoBorrar);
+               Files.delete(pathArchivoBorrar);
+               System.out.println("Archivo BORRADO DEL SECUENCIADOR: " + pathArchivoBorrar);
+               sessionBeanBaseFachada.actualizarEstadoPorcentajeLabFinProcesamiento(lista.getId(), "FINALIZADO", 100);
+           }
+           
+       }
+       }catch(Exception e){
+           System.out.println("Ocurrio un Error Eliminando el archivo");
+       }
+    
     }
 
     public void renombrarOrdenar() throws IOException {
@@ -287,8 +263,7 @@ public class MBControllerSelfdecode implements Serializable {
         Integer peticion = 0;
         Integer idArchivo = 0;
         Integer contador = 0;
-        Integer contadorExiste = 0;
-        Boolean existe = false;
+       // Integer contadorExiste = 0;
         
         Path in = Paths.get(rutaInicial);
         Path out;
@@ -318,13 +293,17 @@ public class MBControllerSelfdecode implements Serializable {
                             System.out.println("RENOMBRADO: " + primero + "_" + peticion + segundo);
                             in = Paths.get(rutaInicial + File.separator + directorio[contador]);
                             out = Paths.get(rutaFinal + File.separator + primero + "_" + peticion + segundo);
-                            System.out.println("Ruta Copiar: " + in);
-                            System.out.println("Ruta Pegar: " + out);
+                           // System.out.println("Ruta Copiar: " + in);
+                           // System.out.println("Ruta Pegar: " + out);
 
                             Files.copy(in, out, StandardCopyOption.REPLACE_EXISTING);
-                            System.out.println("COPIADO");
-                            Files.delete(in);
-                            System.out.println("ARCHIVO BORRADO");
+                           // System.out.println("COPIADO");
+                           if (Files.size(in) == Files.size(out)){ 
+                           Files.delete(in);
+                            System.out.println("ARCHIVO BORRADO " + in + " ----- " + out);
+                           }else{
+                               System.out.println("No se puede borrar el archivo");
+                           }
                             sessionBeanBaseFachada.actualizarLabFinProcesamiento(idArchivo);
                             listaLabFinProcesamiento = sessionBeanBaseFachada.consultarArchivosFinProcesamiento();
                            }else {
@@ -340,13 +319,17 @@ public class MBControllerSelfdecode implements Serializable {
                             System.out.println("RENOMBRADO: " + primero + "_" + peticion + segundo);
                             in = Paths.get(rutaInicial + File.separator + directorio[contador]);
                             out = Paths.get(rutaFinal + File.separator + primero + "_" + peticion + segundo);
-                            System.out.println("Ruta Copiar: " + in);
-                            System.out.println("Ruta Pegar: " + out);
+                           // System.out.println("Ruta Copiar: " + in);
+                           // System.out.println("Ruta Pegar: " + out);
 
                             Files.copy(in, out, StandardCopyOption.REPLACE_EXISTING);
-                            System.out.println("COPIADO");
-                            Files.delete(in);
-                            System.out.println("ARCHIVO BORRADO");
+                            //System.out.println("COPIADO");
+                            if(Files.size(in) == Files.size(out)){ // Validacion de tamaño para borrar el archivo copiado a la carpeta
+                            Files.delete(in);                            
+                            System.out.println("ARCHIVO BORRADO " + in + " ----- " + out);
+                            }else{
+                                System.out.println("No se puede Borrar el archivo");
+                            }
                             sessionBeanBaseFachada.actualizarLabFinProcesamiento(idArchivo);
                             listaLabFinProcesamiento = sessionBeanBaseFachada.consultarArchivosFinProcesamiento();
                            }

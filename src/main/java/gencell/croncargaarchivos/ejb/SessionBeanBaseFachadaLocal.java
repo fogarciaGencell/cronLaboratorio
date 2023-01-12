@@ -72,7 +72,14 @@ public interface SessionBeanBaseFachadaLocal {
     
    public List<LabFinProcesamiento> consultarArchivosFinProcesamiento();
     
-   public void actualizarLabFinProcesamiento(Integer id); 
-    // Fin Cron Laboratorio *************
+   public void actualizarLabFinProcesamiento(Integer id);
+   
+   public List<LabFinProcesamiento> consultarArchivosCopiar();
+   
+   public void actualizarEstadoPorcentajeLabFinProcesamiento(Integer id, String estado , Integer porcentaje);
+   
+   public List<LabFinProcesamiento> consultarBorrarSecuenciador();
+   
+// Fin Cron Laboratorio *************
     
 }
