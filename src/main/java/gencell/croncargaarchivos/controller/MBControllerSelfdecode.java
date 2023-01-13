@@ -8,8 +8,10 @@ package gencell.croncargaarchivos.controller;
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.SftpATTRS;
+import com.jcraft.jsch.SftpException;
 import static gencell.croncargaarchivos.controller.MBControllerLaboratorio.CONTRASENA;
 import static gencell.croncargaarchivos.controller.MBControllerLaboratorio.HOST;
 import static gencell.croncargaarchivos.controller.MBControllerLaboratorio.PATH_ARCHIVOS_LOCAL;
@@ -77,20 +79,20 @@ public class MBControllerSelfdecode implements Serializable {
             //archivos.add("V350097149_L03_81_2.fq.gz");
             //archivos.add("V350097149_L03_83_1.fq.gz");
             
+            this.crearArchivos("/home/linux/Descargas/fas", "C:\\Users\\devjava\\Desktop\\laboratorio\\25088\\V350097149_L01_58_25088_1.fq.gz", "Creado.fq.gz");
             
-            
-            archivos = sessionBeanBaseFachada.consultarArchivosCopiar();
-
-            if (archivos != null && !archivos.isEmpty()) {
-                System.out.println("**************** ENCUENTRA ARCHIVOS PARA CARGAR: " + archivos.size());
-                this.cargarArchivosFasq(archivos);
-            } else {
-                System.out.println("No hay archivos para copiar");
-            }
-
-            System.out.println("Renombrando y Ordenando ....... ");
-            this.renombrarOrdenar();
-            this.eliminarDelSecuenciador();
+//            archivos = sessionBeanBaseFachada.consultarArchivosCopiar();
+//
+//            if (archivos != null && !archivos.isEmpty()) {
+//                System.out.println("**************** ENCUENTRA ARCHIVOS PARA CARGAR: " + archivos.size());
+//                this.cargarArchivosFasq(archivos);
+//            } else {
+//                System.out.println("No hay archivos para copiar");
+//            }
+//
+//            System.out.println("Renombrando y Ordenando ....... ");
+//            this.renombrarOrdenar();
+//            this.eliminarDelSecuenciador();
         } catch (Exception e) {
             System.out.println("Error al inicio");
         }
@@ -137,10 +139,6 @@ public class MBControllerSelfdecode implements Serializable {
             sftp.connect();
             sftp.cd("/home/linux/Descargas/fas");
             sftp.get(archivo, PATH_ARCHIVOS_LOCAL + archivo);
-            //System.out.println("Creando Carpeta");
-            //sftp.put("/home/linux/Descargas/fas/Creada.folder");
-            
-            //System.out.println("CARPETA CREADA **********************");
             sftp.disconnect();
             return true;
         } catch (Exception e) {
@@ -185,10 +183,6 @@ public class MBControllerSelfdecode implements Serializable {
                 if (entry.getFilename().equals(archivo)) {
                     if (tmp.length() == attr.getSize()) {
                         System.out.println("Archivo en el Seuenciador: " + entry);
-                        ChannelSftp channelSftp = (ChannelSftp) session.openChannel("sftp");
-                        System.out.println("CREANDO CARPETA");
-                        channelSftp.put("/home/linux/Descargas/fas", "creada");
-                        System.out.println("CARPETA CREADA");
                         sessionBeanBaseFachada.actualizarEstadoPorcentajeLabFinProcesamiento(archivoCar.getId(), "CARGADO-SERVER", 90);
                        // System.out.println("Archivo " + archivoCar + " Copiado");
                         //this.sendPost(archivoCar);
@@ -365,4 +359,55 @@ public class MBControllerSelfdecode implements Serializable {
         sessionBeanBaseFachada.actualizarLabFinProcesamiento(1);
 
     }
+    
+    public void crearArchivos(String ftpPath, String filePath, String fileName)throws IllegalAccessException, IOException,
+        SftpException, JSchException{
+    
+    JSch jsch = new JSch();
+    ChannelSftp sftp = null;
+    Session session = null;
+    String archivo = "creada.txt";
+        try {
+            //File tmp = new File(PATH_ARCHIVOS_LOCAL + archivo);
+
+            session = jsch.getSession(USUARIO, HOST, 22);
+            session.setConfig("PreferredAuthentications", "password");
+            session.setConfig("StrictHostKeyChecking", "no");
+            session.setPassword(CONTRASENA);
+            session.connect();
+            
+            if (session != null && session.isConnected()) {
+                
+                ChannelSftp channelSftp = (ChannelSftp) session.openChannel("sftp");
+                System.out.println("Ruta : " + HOST+ftpPath);
+                //channelSftp.cd(ftpPath);
+                channelSftp.connect();
+                channelSftp.cd(ftpPath);
+                channelSftp.mkdir("Creada");
+                channelSftp.cd(ftpPath+"/Creada");
+                channelSftp.put(filePath, fileName);
+                
+                channelSftp.exit();
+                channelSftp.disconnect();
+                
+            }else{
+                System.out.println("No existe sesion activa");
+            }
+            
+            
+        } catch (Exception e) {
+            System.out.println("No se pudo realizar la conexión para comprobar archivo");
+            e.printStackTrace();
+            return;
+        } finally {
+            if (sftp != null) {
+                sftp.disconnect();
+            }
+            if (session != null) {
+                session.disconnect();
+            }
+        }    
+    
+    }
+    
 }
