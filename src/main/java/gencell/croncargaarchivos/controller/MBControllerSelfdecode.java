@@ -53,7 +53,7 @@ public class MBControllerSelfdecode implements Serializable {
     //public static final String PATH_ARCHIVOS_SELFDECODE_DEV = "d:\\";
     //public static final String PATH_ARCHIVOS_SELFDECODE = "/var/www/html/files_selfdecode/";
     public static final String PATH_ARCHIVOS_LOCAL = "C:\\Users\\devjava\\Desktop\\laboratorio\\";
-    public static final String HOST = "192.168.0.242";
+    public static final String HOST = "192.168.0.243";
     public static final String USUARIO = "linux";
     public static final String CONTRASENA = "linux";
 
@@ -79,20 +79,20 @@ public class MBControllerSelfdecode implements Serializable {
             //archivos.add("V350097149_L03_81_2.fq.gz");
             //archivos.add("V350097149_L03_83_1.fq.gz");
             
-            this.crearArchivos("/home/linux/Descargas/fas", "C:\\Users\\devjava\\Desktop\\laboratorio\\25088\\V350097149_L01_58_25088_1.fq.gz", "Creado.fq.gz");
+          //  this.crearArchivos("/home/linux/Descargas/fas", "C:\\Users\\devjava\\Desktop\\laboratorio\\25088\\V350097149_L01_58_25088_1.fq.gz", "Creado.fq.gz");
             
-//            archivos = sessionBeanBaseFachada.consultarArchivosCopiar();
-//
-//            if (archivos != null && !archivos.isEmpty()) {
-//                System.out.println("**************** ENCUENTRA ARCHIVOS PARA CARGAR: " + archivos.size());
-//                this.cargarArchivosFasq(archivos);
-//            } else {
-//                System.out.println("No hay archivos para copiar");
-//            }
-//
-//            System.out.println("Renombrando y Ordenando ....... ");
-//            this.renombrarOrdenar();
-//            this.eliminarDelSecuenciador();
+            archivos = sessionBeanBaseFachada.consultarArchivosCopiar();
+
+            if (archivos != null && !archivos.isEmpty()) {
+                System.out.println("**************** ENCUENTRA ARCHIVOS PARA CARGAR: " + archivos.size());
+                this.cargarArchivosFasq(archivos);
+            } else {
+                System.out.println("No hay archivos para copiar");
+            }
+
+            System.out.println("Renombrando y Ordenando ....... ");
+            this.renombrarOrdenar();
+            this.eliminarDelSecuenciador();
         } catch (Exception e) {
             System.out.println("Error al inicio");
         }

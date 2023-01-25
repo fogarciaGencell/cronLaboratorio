@@ -33,7 +33,7 @@ public class JobCargaArchivos implements Job {
         System.out.println("---------FINALIZA CRON CARGA VARSOME-SANITAS ---------");*/
         
         System.out.println("**************************************************** INICIA EJECUCION SELFDECODE *************************************************************************************************************" + new Date());
-        System.out.println("---------INICIO CRON CARGA ARCHIVOS SELFDECODE---------");
+        System.out.println("---------INICIO CRON CARGA ARCHIVOS LABORATORIO---------");
         MBControllerSelfdecode controllerself = new MBControllerSelfdecode();
         controllerself.ejecutarTareaCargaArchivosSelfdecode();
         System.out.println("---------FINALIZA CRON CARGA SELFDECODE ---------");
