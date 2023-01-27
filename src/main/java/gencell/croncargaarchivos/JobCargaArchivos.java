@@ -5,7 +5,6 @@
  */
 package gencell.croncargaarchivos;
 
-import gencell.croncargaarchivos.controller.MBControllerLaboratorio;
 import gencell.croncargaarchivos.controller.MBControllerSelfdecode;
 import java.util.Date;
 import org.quartz.Job;

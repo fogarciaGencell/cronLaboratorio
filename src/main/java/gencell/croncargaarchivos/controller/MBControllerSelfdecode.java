@@ -12,10 +12,6 @@ import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.SftpATTRS;
 import com.jcraft.jsch.SftpException;
-import static gencell.croncargaarchivos.controller.MBControllerLaboratorio.CONTRASENA;
-import static gencell.croncargaarchivos.controller.MBControllerLaboratorio.HOST;
-import static gencell.croncargaarchivos.controller.MBControllerLaboratorio.PATH_ARCHIVOS_LOCAL;
-import static gencell.croncargaarchivos.controller.MBControllerLaboratorio.USUARIO;
 import gencell.croncargaarchivos.ejb.SessionBeanBaseFachadaLocal;
 import gencell.croncargaarchivos.entities.Cron;
 import gencell.croncargaarchivos.entities.LabFinProcesamiento;
@@ -53,9 +49,12 @@ public class MBControllerSelfdecode implements Serializable {
     //public static final String PATH_ARCHIVOS_SELFDECODE_DEV = "d:\\";
     //public static final String PATH_ARCHIVOS_SELFDECODE = "/var/www/html/files_selfdecode/";
     public static final String PATH_ARCHIVOS_LOCAL = "C:\\Users\\devjava\\Desktop\\laboratorio\\";
-    public static final String HOST = "192.168.0.243";
-    public static final String USUARIO = "linux";
-    public static final String CONTRASENA = "linux";
+    public static final String HOST_LINUX = "192.168.0.243";
+    public static final String USUARIO_LINUX = "linux";
+    public static final String CONTRASENA_LINUX = "linux";
+    public static final String HOST_SECUENCIADOR = "200.91.224.181";
+    public static final String USUARIO_SECUENCIADOR = "processmarki";
+    public static final String CONTRASENA_SECUENCIADOR = "serverBio2022*";
 
     /**
      * Creates a new instance of MBController
@@ -92,7 +91,9 @@ public class MBControllerSelfdecode implements Serializable {
 
             System.out.println("Renombrando y Ordenando ....... ");
             this.renombrarOrdenar();
-            this.eliminarDelSecuenciador();
+            System.out.println("COPIANDO AL DE ALMACENAMIENTO");
+            this.copiarHastaAlmacenamiento("/home/linux/Descargas/fas", "C:\\Users\\devjava\\Desktop\\laboratorio\\25088\\V350097032_L01_45_25088_1.fq.gz", "ArchivoCopiado.fq.gz");
+            //this.eliminarDelSecuenciador();
         } catch (Exception e) {
             System.out.println("Error al inicio");
         }
@@ -129,15 +130,15 @@ public class MBControllerSelfdecode implements Serializable {
         Session session = null;
         String archivo = archivoCar.getNombreArchivoCompleto();
         try {
-            session = jsch.getSession(USUARIO, HOST, 22);
+            session = jsch.getSession(USUARIO_SECUENCIADOR, HOST_SECUENCIADOR, 22);
             session.setConfig("PreferredAuthentications", "password");
             session.setConfig("StrictHostKeyChecking", "no");
-            session.setPassword(CONTRASENA);
+            session.setPassword(CONTRASENA_SECUENCIADOR);
             session.connect();
             Channel channel = session.openChannel("sftp");
             sftp = (ChannelSftp) channel;
             sftp.connect();
-            sftp.cd("/home/linux/Descargas/fas");
+            sftp.cd("/var/www/html/files_varsome");
             sftp.get(archivo, PATH_ARCHIVOS_LOCAL + archivo);
             sftp.disconnect();
             return true;
@@ -168,15 +169,15 @@ public class MBControllerSelfdecode implements Serializable {
                 return;
             }
 
-            session = jsch.getSession(USUARIO, HOST, 22);
+            session = jsch.getSession(USUARIO_SECUENCIADOR, HOST_SECUENCIADOR, 22);
             session.setConfig("PreferredAuthentications", "password");
             session.setConfig("StrictHostKeyChecking", "no");
-            session.setPassword(CONTRASENA);
+            session.setPassword(CONTRASENA_SECUENCIADOR);
             session.connect();
             Channel channel = session.openChannel("sftp");
             sftp = (ChannelSftp) channel;
             sftp.connect();
-            java.util.Vector<ChannelSftp.LsEntry> flLst = sftp.ls("/home/linux/Descargas/fas");
+            java.util.Vector<ChannelSftp.LsEntry> flLst = sftp.ls("/var/www/html/files_varsome");
             for (int j = 0; j < flLst.size(); j++) {
                 ChannelSftp.LsEntry entry = flLst.get(j);
                 SftpATTRS attr = entry.getAttrs();
@@ -360,7 +361,7 @@ public class MBControllerSelfdecode implements Serializable {
 
     }
     
-    public void crearArchivos(String ftpPath, String filePath, String fileName)throws IllegalAccessException, IOException,
+    public void copiarHastaAlmacenamiento(String rutaDestino, String rutaDirectorioCopiar, String nombreFinal)throws IllegalAccessException, IOException,
         SftpException, JSchException{
     
     JSch jsch = new JSch();
@@ -370,22 +371,22 @@ public class MBControllerSelfdecode implements Serializable {
         try {
             //File tmp = new File(PATH_ARCHIVOS_LOCAL + archivo);
 
-            session = jsch.getSession(USUARIO, HOST, 22);
+            session = jsch.getSession(USUARIO_LINUX, HOST_LINUX, 22);
             session.setConfig("PreferredAuthentications", "password");
             session.setConfig("StrictHostKeyChecking", "no");
-            session.setPassword(CONTRASENA);
+            session.setPassword(CONTRASENA_LINUX);
             session.connect();
             
             if (session != null && session.isConnected()) {
                 
                 ChannelSftp channelSftp = (ChannelSftp) session.openChannel("sftp");
-                System.out.println("Ruta : " + HOST+ftpPath);
+                System.out.println("Ruta : " + HOST_LINUX+rutaDestino);
                 //channelSftp.cd(ftpPath);
                 channelSftp.connect();
-                channelSftp.cd(ftpPath);
-                channelSftp.mkdir("Creada");
-                channelSftp.cd(ftpPath+"/Creada");
-                channelSftp.put(filePath, fileName);
+                channelSftp.cd(rutaDestino);
+                channelSftp.mkdir("Copiado");
+                channelSftp.cd(rutaDestino+"/Copiado");
+                channelSftp.put(rutaDirectorioCopiar, nombreFinal);
                 
                 channelSftp.exit();
                 channelSftp.disconnect();
